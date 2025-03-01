@@ -11,10 +11,11 @@ public class EnergyBlockRepository(IgitDbContext context) : IRepository<EnergyBl
     public async Task<EnergyBlock?> GetByIdAsync(Guid id) =>
         await context.EnergyBlocks.FirstOrDefaultAsync(s => s.Id == id);
 
-    public async Task AddAsync(EnergyBlock entity)
+    public async Task<EnergyBlock> AddAsync(EnergyBlock entity)
     {
         context.EnergyBlocks.Add(entity);
         await context.SaveChangesAsync();
+        return entity;
     }
 
     public async Task UpdateAsync(EnergyBlock entity)
@@ -23,7 +24,7 @@ public class EnergyBlockRepository(IgitDbContext context) : IRepository<EnergyBl
         await context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(Guid id)
     {
         var EnergyBlock = await context.EnergyBlocks.FindAsync(id);
         if (EnergyBlock != null)

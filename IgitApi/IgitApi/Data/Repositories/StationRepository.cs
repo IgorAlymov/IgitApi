@@ -11,10 +11,11 @@ public class StationRepository(IgitDbContext context) : IRepository<Station>
     public async Task<Station?> GetByIdAsync(Guid id) =>
         await context.Stations.Include(s => s.EnergyBlocks).FirstOrDefaultAsync(s => s.Id == id);
 
-    public async Task AddAsync(Station entity)
+    public async Task<Station> AddAsync(Station entity)
     {
         context.Stations.Add(entity);
         await context.SaveChangesAsync();
+        return entity;
     }
 
     public async Task UpdateAsync(Station entity)
@@ -23,7 +24,7 @@ public class StationRepository(IgitDbContext context) : IRepository<Station>
         await context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(Guid id)
     {
         var station = await context.Stations.FindAsync(id);
         if (station != null)
