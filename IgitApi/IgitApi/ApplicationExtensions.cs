@@ -59,11 +59,6 @@ public static class ApplicationExtensions
             .AddPolicy("UserOnly", policy => policy.RequireRole("User"));
 
         builder.Services.AddControllers();
-
-        //builder.Services.AddScoped<IStationService, StationService>();
-        //builder.Services.AddScoped<IPowerUnitService, PowerUnitService>();
-        builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
-
         return builder;
     }
 }
