@@ -3,8 +3,8 @@
 public class BaseEntity : IBaseEntity<Guid>
 {
     public Guid Id { get; set; } = Guid.NewGuid();
-    public DateTimeOffset DateAdded { get; set; }
-    public DateTimeOffset DateUpdated { get; set; }
+    public DateTimeOffset DateAdded { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset DateUpdated { get; set; } = DateTimeOffset.UtcNow;
 }
 
 public interface IBaseEntity<T>
