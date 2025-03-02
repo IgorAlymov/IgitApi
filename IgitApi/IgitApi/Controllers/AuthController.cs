@@ -20,19 +20,15 @@ public class AuthController(
     : ControllerBase
 {
     [HttpPost("register")]
-    public async Task<IActionResult> Register(RegisterRequest model)
+    public async Task<IActionResult> RegisterAsync(RegisterRequest model)
     {
         var user = new User { UserName = model.Email, Email = model.Email };
         var result = await userManager.CreateAsync(user, model.Password);
         if (result.Succeeded)
         {
-            if (await userManager.FindByEmailAsync(user.Email) == null)
-            {
-                await userManager.AddToRoleAsync(user, "User");
-            }
-
-            await signInManager.SignInAsync(user, isPersistent: false);
-            return Ok(await GenerateJwtToken(user));
+            await userManager.AddToRoleAsync(user, "User");
+            var token = await GenerateJwtTokenAsync(user);
+            return Ok(new AuthenticationResponse { Id = user.Id.ToString(), Email = user.Email, Token = token });
         }
 
         foreach (var error in result.Errors)
@@ -44,28 +40,27 @@ public class AuthController(
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login(LoginRequest model)
+    public async Task<IActionResult> LoginAsync(LoginRequest model)
     {
-        var result = await signInManager.PasswordSignInAsync(model.Email, model.Password, isPersistent: false,
-            lockoutOnFailure: false);
-
+        var result = await signInManager.PasswordSignInAsync(model.Email, model.Password, false, false);
         if (result.Succeeded)
         {
             var user = await userManager.FindByEmailAsync(model.Email);
-            return Ok(await GenerateJwtToken(user));
+            var token = await GenerateJwtTokenAsync(user!);
+            return Ok(new AuthenticationResponse { Id = user!.Id.ToString(), Email = user.Email!, Token = token });
         }
 
         ModelState.AddModelError(string.Empty, "Invalid Login Attempt");
         return BadRequest(ModelState);
     }
 
-    private async Task<AuthenticationResponse> GenerateJwtToken(User user)
+    private async Task<string> GenerateJwtTokenAsync(User user)
     {
         var claims = new List<Claim>
         {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new Claim(JwtRegisteredClaimNames.Email, user.Email),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new(JwtRegisteredClaimNames.Email, user.Email!),
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
         var roles = await userManager.GetRolesAsync(user);
@@ -74,7 +69,7 @@ public class AuthController(
         var jwtSettings = configuration.GetSection("Jwt");
         var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]));
         var creds = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
-        var expires = DateTime.Now.AddDays(1); // Token expiration time
+        var expires = DateTime.Now.AddDays(1);
 
         var token = new JwtSecurityToken(
             issuer: jwtSettings["Issuer"],
@@ -84,9 +79,6 @@ public class AuthController(
             signingCredentials: creds
         );
 
-        return new AuthenticationResponse
-        {
-            Id = user.Id.ToString(), Email = user.Email, Token = new JwtSecurityTokenHandler().WriteToken(token)
-        };
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }

@@ -2,9 +2,6 @@ using IgitApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
 builder.AddFull();
 
 var app = builder.Build();
