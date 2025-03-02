@@ -6,5 +6,5 @@ public class EnergyBlock : BaseEntity
     public DateTimeOffset NextMaintenanceDate { get; set; }
     public int SensorCount { get; set; }
     public Guid StationId { get; set; }
-    public Station Station { get; set; }
+    public Station? Station { get; set; }
 }

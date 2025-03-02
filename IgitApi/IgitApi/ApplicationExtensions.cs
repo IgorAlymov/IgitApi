@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using IgitApi.Data;
 using IgitApi.Data.Entities;
+using IgitApi.Data.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -84,7 +85,10 @@ public static class ApplicationExtensions
             .AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"))
             .AddPolicy("UserOnly", policy => policy.RequireRole("User"));
 
-        builder.Services.AddControllers();
+        builder.Services.AddScoped<IRepository<Station>, StationRepository>();
+        builder.Services.AddScoped<IRepository<EnergyBlock>, EnergyBlockRepository>();
+
+        builder.Services.AddControllers().AddNewtonsoftJson();
         return builder;
     }
 }
